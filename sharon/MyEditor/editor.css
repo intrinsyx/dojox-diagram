@@ -1,0 +1,83 @@
+
+.dojoLayoutContainer{ 
+	position: relative; 
+	display: block; }
+	
+body .dojoAlignTop, body .dojoAlignBottom, body .dojoAlignLeft, body .dojoAlignRight { 
+	position: absolute; 
+	overflow: hidden; 
+}
+body .dojoAlignClient { 
+	position: absolute 
+}
+
+.dojoAlignClient { 
+	overflow: auto; 
+}
+
+
+.toolbarContainer {
+	border-bottom : 0;
+	background-color : #def;
+	color : ButtonText;
+	font : Menu;
+}
+
+.toolbar {
+	padding : 2px 4px;
+	min-height : 26px;
+	_height : 26px;
+}
+
+.toolbarItem {
+	float : left;
+	padding : 1px 2px;
+	margin : 0 2px 1px 0;
+	cursor : pointer;
+}
+
+.toolbarItem.selected, .toolbarItem.down {
+	//margin : 1px 1px 0 1px;
+	margin: 0px 2px 1px 0px;
+	//padding: 0px 1px;
+	padding : 1px 1px;
+	//border : 1px solid #bbf;	
+	border: medium double rgb(250,0,255)
+	//background-color : #fafaff;
+	background-color : red;
+}
+
+.toolbarButton img {
+	vertical-align : bottom;
+}
+
+.toolbarButton span {
+	line-height : 16px;
+	vertical-align : middle;
+}
+
+.toolbarButton a:hover img {
+	border: 1px solid #99c;
+}
+
+.toolbarButton a:selected img {
+	border: 1px solid #99c;
+}
+
+.toolbarButton.hover {
+	padding : 0px 1px;
+	border : 1px solid #99c;
+}
+
+.toolbarItem.disabled {
+	opacity : 0.3;
+	filter : alpha(opacity=30);
+	cursor : default;
+}
+
+.toolbarSeparator {
+	cursor : default;
+}
+
+.toolbarFlexibleSpace {
+}

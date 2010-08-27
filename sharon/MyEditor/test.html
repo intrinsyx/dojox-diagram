@@ -1,0 +1,374 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+		"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	
+	<head>
+		<title>Dojox Diagramming Tool</title>
+		<meta http-equiv="imagetoolbar" content="no">
+		
+		<style type="text/css">
+		
+		<!-- @import "dojotrunk/dojo/resources/dojo.css";
+		@Import "dojotrunk/dijit/themes/tundra/tundra.css"; -->
+		
+		@import "dojo-release-1.2.0/dojo/resources/dojo.css";
+		@Import "dojo-release-1.2.0/dijit/themes/tundra/tundra.css";
+		
+		<!-- @import "http://o.aolcdn.com/dojo/1.1.1/dojo/resources/dojo.css";
+		@Import "http://o.aolcdn.com/dojo/1.1.1/dijit/themes/tundra/tundra.css";-->
+		
+		</style>
+		<link href="diagram.css" type="text/css" rel="stylesheet"/>
+		<style type="text/css">
+			body {
+				background:#fff url("images/testsBodyBg.gif") repeat-x top left;
+				padding:1em 3em;
+			}
+			table { margin:0; width:100%;}
+			table tr td { padding:0; }
+			table tr td table { border:0; width:auto;}
+
+			#container{ width:100%; }
+			#toolbar{ width:100%; }
+			#canvas{ width:100%; height:100%; background-color:#fff;border:1px solid #ccc; overflow:auto;position:relative;}
+		</style>
+		
+		<script type="text/javascript">var djConfig={ isDebug: false };</script>
+		<script type="text/javascript" src="dojo-release-1.2.0/dojo/dojo.js"></script>
+		<script type="text/javascript" src="dojo-release-1.2.0/dojo/io/iframe.js"></script>
+		
+		<!--  <script type="text/javascript" src="dojo-release-1.1.1/dojo/dojo.js"></script>
+		<script type="text/javascript" src="dojo-release-1.1.1/dojo/io/iframe.js"></script> -->
+		
+		<!-- <script type="text/javascript" src="http://o.aolcdn.com/dojo/1.1.1/dojo/dojo.xd.js"></script>
+		<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.1.1/dojo/io/iframe.js"></script>	
+		<script src="http://o.aolcdn.com/dojo/1.1.1/dojox/gfx.js"</script>		
+		<script src="http://o.aolcdn.com/dojo/1.1.1/dijit/dijit.js"</script>-->
+		
+		<script type="text/javascript" src="javascripts/diagram.js"></script>
+		<script type="text/javascript" src="javascripts/_Plugin.js"></script>
+		<script type="text/javascript" src="javascripts/UndoStack.js"></script>
+		<script type="text/javascript" src="javascripts/Figure.js"></script>
+		<script type="text/javascript" src="javascripts/Toolbar.js"></script>
+		<script type="text/javascript" src="javascripts/Anchor.js"></script>
+		<script type="text/javascript" src="javascripts/ShapeBase.js"></script>	
+		<script type="text/javascript" src="javascripts/Slider.js"></script>
+		<script type="text/javascript" src="javascripts/Select.js"></script>
+		<script type="text/javascript" src="javascripts/Rectangle.js"></script>
+		<script type="text/javascript" src="javascripts/RoundRect.js"></script>
+		<script type="text/javascript" src="javascripts/Ellipse.js"></script>
+		<script type="text/javascript" src="javascripts/Circle.js"></script>
+		<script type="text/javascript" src="javascripts/Triangle.js"></script>
+		<script type="text/javascript" src="javascripts/Text.js"></script>
+		<script type="text/javascript" src="javascripts/Connector.js"></script>
+		<script type="text/javascript" src="javascripts/Hexagon.js"></script>
+		<script type="text/javascript" src="javascripts/Path.js"></script>	
+		<script type="text/javascript" src="javascripts/ImageRect.js"></script>	
+		<script type="text/javascript" src="javascripts/Toolfactory.js"></script>
+		<script type="text/javascript" src="javascripts/Scaletest.js"></script>
+		
+		<script type="text/javascript">
+		 dojo.require("dijit.ProgressBar"); 
+		dojo.require("dijit.form.Button"); 
+		dojo.require("dojo.parser"); 		
+
+		// it's all wrapped up in a single function
+		function sendForm(){
+		
+			// all the dojo.styles and dojo.byId calls are for convenience.
+			// to easily have access to individual parts of the "upload" 
+			// area.  turnthing this into an Upload widget would make this
+			// un-necessary
+
+			// myHost = dojo.byId('mainForm1').name.value; 
+			dojo.style(dojo.byId('inputField'),"display","none");
+			dojo.style(dojo.byId('progressField'),"display","inline"); 
+			dojo.byId('preamble').innerHTML = "Uploading ..."; 
+			
+			//alert("before dojo.io.iframe.send");
+			dojo.io.iframe.send({
+				url: "file_upload.jsp",
+				method: "post",
+				handleAs: "html",
+				parseOnLoad: false,
+				form: dojo.byId('mainForm1'),
+				handle: function(data,ioArgs){
+					//alert("inside handle"+", ioArgs:"+ioArgs);
+					//alert("the data:"+data);
+					/*var foo = dojo.fromJson(data);
+					if (foo.status == "success"){
+						alert("inside handle success");
+						dojo.style(dojo.byId('inputField'),"display","inline");
+						dojo.byId('fileInput1').value = '';
+						dojo.style(dojo.byId('progressField'),"display","none"); 
+						dojo.byId('uploadedFiles').innerHTML += "success: File: " + foo.details.name + " size: " + foo.details.size +"<br>"; 
+						dojo.byId('preamble').innerHTML = "File to Upload: "; 			
+					}else{
+						alert("inside handle not success");
+						dojo.style(dojo.byId('inputField'),"display","inline");
+						dojo.style(dojo.byId('progressField'),"display","none"); 
+						dojo.byId('preamble').innerHTML = "Error, try again: "; 
+					}	*/
+					var obj = data.getElementById("responsetext");
+					if(obj!=false){
+						dojo.style(dojo.byId('inputField'),"display","inline");
+						//dojo.byId('fileInput1').value = '';
+						dojo.style(dojo.byId('progressField'),"display","none"); 
+						dojo.byId('uploadedFiles').innerHTML = "Load success: File: " + obj.value+". <br> Now close the dialog.";
+					}
+					else{
+						dojo.style(dojo.byId('inputField'),"display","inline");
+						dojo.style(dojo.byId('progressField'),"display","none"); 
+						dojo.byId('preamble').innerHTML = "Error, try again: "; 
+					}
+					
+					//dojo.byId("ResponseText").innerHTML=response.innerHTML; //Here response is an object HTML Document
+                    //return response;
+				}
+				/*load: function(data,ioArgs){
+				var obj = data.getElementById("testTable");
+				var responseData = data;
+				dojo.byId('uploadedFiles').innerHTML = "success but "+responseData;
+				},
+				error : function(data, ioArgs) {
+				dojo.byId('uploadedFiles').innerHTML = "Error but "+data;
+				}*/
+			});
+			//alert("after dojo.io.iframe.send");
+		}	
+		
+		function sendForm4(){
+			// myHost = dojo.byId('mainForm4').name.value; 
+			dojo.style(dojo.byId('inputField4'),"display","none");
+			dojo.style(dojo.byId('progressField4'),"display","inline"); 
+			dojo.byId('preamble4').innerHTML = "Uploading ..."; 
+			
+			//alert("before dojo.io.iframe.send");
+			dojo.io.iframe.send({
+				url: "file_upload.jsp",
+				method: "post",
+				handleAs: "html",
+				parseOnLoad: false,
+				form: dojo.byId('mainForm4'),
+				handle: function(data,ioArgs){
+					var obj = data.getElementById("responsetext");
+					if(obj!=false){
+						dojo.style(dojo.byId('inputField4'),"display","inline");
+						//dojo.byId('fileInput4').value = '';
+						dojo.style(dojo.byId('progressField4'),"display","none"); 
+						dojo.byId('uploadedFiles4').innerHTML = "Load success: File: " + obj.value+"<br>";
+					}
+					else{
+						dojo.style(dojo.byId('inputField4'),"display","inline");
+						dojo.style(dojo.byId('progressField4'),"display","none"); 
+						dojo.byId('preamble4').innerHTML = "Error, try again: "; 
+					}
+				}
+			});
+			//alert("after dojo.io.iframe.send");
+		}	
+	</script>
+	
+	<!--  for the second upload form without dojo with div id="fileForm3" -->
+	<script type="text/javascript"> 
+		function callback(msg)   
+		{   
+		    document.getElementById("file").outerHTML = document.getElementById("file").outerHTML;   
+		     document.getElementById("msg").innerHTML = "<font color=red>"+msg+"></font>";   
+		 }   
+	 </script>
+ 
+		<script>			
+		var f, a, t;
+		makeToolbar=function(node,figure){
+			var toolbar=new dojox.diagram.Toolbar({"figure":figure});
+			node.appendChild(toolbar.domNode);
+			return toolbar;
+		}
+		/*makeToolbar2=function(node,figure){
+			var toolbar2=new dojox.diagram.Toolbar2({"figure":figure});
+			node.appendChild(toolbar2.domNode);
+			return toolbar2;
+		}*/
+		
+		f=new Figure();
+		
+		function init(){
+			var ta=dojox.diagram;
+			//f=new ta.Figure();
+			//f=new Figure();
+			dojo.connect(f, "_mu", function(){ dojo.byId("outputtext").value=f.serialize(); });
+			
+			makeToolbar(dojo.byId("toolbar"), f);
+			//makeToolbar2(dojo.byId("toolbar2"), f);
+			//	test loading from a SVG file or other format files, such as text format
+			dojo.xhrGet({
+				url:"test.svg",
+				preventCache:true,
+				load:function(data, ioArgs){
+				//console.log("data in dojo.xhrGet:"+data);
+					f.load(dojox.xml.DomParser.parse(data), dojo.byId("canvas"));
+					dojo.byId("outputtext").value=f.serialize();
+				}
+			});
+		}			
+		dojo.addOnLoad(init);
+		
+		scaleTest=function(count){
+				alert("scale test for "+count+" rectangles!");
+				f._test(count);								
+		}	
+		</script>		
+		
+		<script>
+	       function saveCallback(data,ioArgs) {
+	         //alert(data);
+	         alert("Your diagram was saved sucessfully!");
+	         //alert("data:"+data);
+	       }       
+	       
+	       function saveError(error) {
+	          console.error('Error: ', error);
+	          alert(error);
+	          //alert('Error when retrieving data from the server! data:'+data+', ioArgs: '+ioArgs[0]+' , '+ioArgs[1]);
+	          
+	       }
+		</script>
+
+		<script>
+		// save the current diagram to a svg file or text file.			
+		save= function(){
+			dojo.xhrPost({
+	           url: "save.jsp",
+	           preventCache: true,
+	           load: saveCallback, 
+	           error: saveError,
+	           content: {name: dojo.byId('outputtext').value }
+	        });	
+	        };	
+		</script>
+		
+		<!--  <script type='text/javascript' 
+        src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'>
+        </script>-->
+	</head>
+
+	<body class="tundra">
+		<h1>Dojox Diagramming Tool </h1>
+		<p>See <a href="http://www.intrinsyx.com/tab_products_dojoxtool.html">the manual</a><br>
+		Note: server-related features(save, upload a file, upload an image) are not available from the web, as the host doesn't support jsp. Here is a <a href="http://www.intrinsyx.com/sharon/Demo_image.htm" target="_blank">video</a> to show the image upload, save and upload features<br>
+		This tool might experience some problem with IE 8 beta. It should work for IE 6 and 7. If you notice any problem, please send email to <a href="mailto:gyang2007@gmail.com">Sharon</a>, with the browser name and version.</p>
+		<p> </p>
+     	
+		<div id="container">
+			<div id="toolbar"></div>
+
+	<!-- file upload example from:
+	http://turtle.dojotoolkit.org/~dante/upload.html -->
+	<!--  for image upload -->
+	<div id="fileForm1" style="display: none;">
+	<!-- Dojo upload example:-->
+	<form id="mainForm1" enctype="multipart/form-data" name="fileTest" action="file_upload.jsp" method="post"> <!--target="_blank">-->
+	<!-- you can upload x-domain. un-comment this, and the above addOnLoad to try -->
+	<!-- to host: <input type="hidden"  name="name" value="" > -->
+	<!-- no real reason to have a div around this part -->
+	<div id="uploadContainer">
+		<input type="hidden" name="MAX_FILE_SIZE" value="1000000">
+		<!-- wrapping these in spans to be able to modify parts of this form
+			depending on what the io.iframe.submit() does -->
+
+		<span id="preamble">File to Upload:</span><br>
+		<span id="inputField">
+			<input type="file" id="fileInput1" name="filename">
+		</span>
+		<!-- 	it would be cool to be able to know the filesize to 
+			update progressBar any ideas? 				-->
+		<span id="progressField" style="display:none;">
+			<div dojoType="dijit.ProgressBar" style="width:200px" indeterminate="true"></div>
+		</span>
+
+	</div>
+
+	<button type="submit" value="upload" dojoType="dijit.form.Button" onClick="sendForm()">Upload</button> 
+
+	</form>
+		 <!-- just so you can see -->
+	<div id="uploadedFiles"><h3>Uploaded so far:</h3>	
+	</div>
+	</div>
+	<!-- end Dojo upload -->
+	
+	
+	<!-- a form without dojo-->
+	<div id="fileForm2" style="display: none;">
+	<!-- Regular HTML form upload example:-->
+	<form id="mainForm2" enctype="multipart/form-data" name="fileTest" action="file_upload.jsp" method="post" target="_blank">
+	<input type="file" id="fileInput2" name="filename">
+	<input type="submit" value="Submit">
+	</form>
+	</div>
+	
+	<!--  another form without Dojo from http://www.javaeye.com/post/525132-->
+	<div id="fileForm3" style="display: none;">
+	<form action="file_upload.jsp" id="mainForm3" name="mainForm3" encType="multipart/form-data"  method="post" target="hidden_frame" >  
+       <input type="file" id="fileInput3" name="filename" style="width:450">   
+      <INPUT type="submit" value="upload file"><span id="msg"></span>
+       <br>   
+      <font color="red">support JPG,JPEG,GIF,BMP,SWF,RMVB,RM,AVI format</font>                
+        <!-- <iframe name='hidden_frame' id="hidden_frame" style='display:none'></iframe> -->
+   </form> 
+   </div>
+   
+   <!--  for file 'open' -->
+	<div id="fileForm4" style="display: none;">
+	<form id="mainForm4" enctype="multipart/form-data" name="fileTest" action="file_upload.jsp" method="post" target="_blank">
+	<div id="uploadContainer">
+		<input type="hidden" name="MAX_FILE_SIZE" value="1000000">
+
+		<span id="preamble4">File to Upload:</span><br>
+		<span id="inputField4">
+			<input type="file" id="fileInput4" name="filename">
+		</span>
+		<span id="progressField4" style="display:none;">
+			<div dojoType="dijit.ProgressBar" style="width:200px" indeterminate="true"></div>
+		</span>
+
+	</div>
+	<button type="submit" value="upload" dojoType="dijit.form.Button" onClick="sendForm4()">Upload</button> 
+	</form>
+	<div id="uploadedFiles4"><h3>Uploaded so far:</h3>	
+	</div>
+	</div>
+	<!-- end file 'open' -->
+	
+	     	
+		<!--	<button dojoType="dijit.form.Button" id="saveButton" onclick=save()>
+        		Save the diagram
+     		</button>-->
+     	
+     	<!--  for test case,100, 500, 1000 rectangles -->
+     		<div id="test" style="display: none;"> Scale Test
+<input type="radio" name="rectangle" value="100" onclick="scaleTest(100)"> 100 rectangles
+<input type="radio" name="rectangle" value="200" onclick="scaleTest(200)"> 200 rectangles
+<input type="radio" name="rectangle" value="300" onclick="scaleTest(300)"> 300 rectangles
+<input type="radio" name="rectangle" value="500" onclick="scaleTest(500)"> 500 rectangles
+<input type="radio" name="rectangle" value="1000" onclick="scaleTest(1000)"> 1000 rectangles
+<input type="radio" name="rectangle" value="5000" onclick="scaleTest(5000)"> 5000 rectangles
+<input type="radio" name="rectangle" value="10000" onclick="scaleTest(10000)"> 10000 rectangles
+<input type="radio" name="rectangle" value="15000" onclick="scaleTest(15000)"> 15000 rectangles
+<input type="radio" name="rectangle" value="20000" onclick="scaleTest(20000)"> 20000 rectangles
+</div>
+			<div id="canvas"></div>
+		</div>  
+
+		<!--<p>Help: Use FireFox for better quality.<br />-->
+		Press <b>ctrl+z</b> &mdash; undo,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>ctrl+y</b> &mdash; redo, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> ctrl+v</b> &mdash; duplicate,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> ctrl+mouse click</b> &mdash; group selection,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> b or B</b> &mdash; move to back, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b> f or F</b> &mdash; move to front &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>delete</b> &mdash; delete,
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> left/right/up/down arrow</b> &mdash; pan,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Double click a shape</b> &mdash; text annotation, &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b> drag the mouse from one shape to another shape </b>&mdash; draw connector.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b> right click a shape </b>&mdash; shape and font editing.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>	
+     	
+     <!--	<input type="text" value="Save the diagram" id="name">-->
+				
+		<h2>Serialized output text</h2>
+		<!--<textarea id="test"> test texarea </textarea>-->
+		<textarea type="text" id="outputtext" style="width:100%;height:180px;overflow:auto;font-size:0.8em;"></textarea>
+	</body>
+</html>

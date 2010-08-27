@@ -1,0 +1,23 @@
+.dojoxDiagramIcon{
+	background-repeat:no-repeat;
+	height:16px;
+	min-width:16px;
+	text-align:center;
+	width:16px;
+}
+.dojoxDiagramIcon { background-image:url(images/icons-6.gif); }
+.ShowCallouts{ background-position:0px 0px; }
+.dojoxDiagramIconEllipse{ background-position:0px -16px; }
+.dojoxDiagramIconTriangle{ background-position:0px -32px; }
+.dojoxDiagramIconPath{ background-position:0px -48px; }
+.dojoxDiagramIconUnderline{ background-position:0px -64px; }
+.dojoxDiagramIconSingleArrow{ background-position:0px -80px; }
+.dojoxDiagramIconUndo{ background-position:0px -96px; }
+.dojoxDiagramIconRedo{ background-position:0px -112px; }
+.dojoxDiagramIconDoubleArrow{ background-position:0px -128px; }
+.dojoxDiagramIconRoundRect{ background-position:0px -144px; }
+
+
+
+
+

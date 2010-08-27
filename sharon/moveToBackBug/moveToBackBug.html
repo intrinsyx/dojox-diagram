@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+		"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	
+	<head>
+		<title>moveToBack bug report</title>
+		<style type="text/css">
+		@import "../MyEditor/dojo-release-1.2.0/dojo/resources/dojo.css";
+		@Import "../MyEditor/dojo-release-1.2.0/dijit/themes/tundra/tundra.css";
+		</style>
+		<link href="diagram.css" type="text/css" rel="stylesheet"/>
+		<style type="text/css">
+			body {
+				background:#fff url("images/testsBodyBg.gif") repeat-x top left;
+				padding:1em 3em;
+			}
+			table { margin:0; width:100%;}
+			table tr td { padding:0; }
+			table tr td table { border:0; width:auto;}
+
+			#container{ width:600px; }
+			#toolbar{ width:100%; }
+			#canvas{ width:600px; height:600px; background-color:#fff;border:1px solid #ccc; overflow:auto;position:relative;}
+		</style>
+		
+		<script>var djConfig={ isDebug: false };</script>
+		<script src="../MyEditor/dojo-release-1.2.0/dojo/dojo.js"</script>
+		<script src="../MyEditor/dojo-release-1.2.0/dojo/io/iframe.js"</script>
+		
+		<script src="javascripts/diagram.js"></script>
+		<script src="javascripts/_Plugin.js"></script>
+		<script src="javascripts/UndoStack.js"></script>
+		<script src="javascripts/Figure.js"></script>
+		<script src="javascripts/Toolbar.js"></script>
+		<script src="javascripts/Anchor.js"></script>
+		<script src="javascripts/ShapeBase.js"></script>
+		<script src="javascripts/Rectangle.js"></script>
+		<script src="javascripts/RoundRect.js"></script>
+		<script src="javascripts/Circle.js"></script>
+		<script src="javascripts/Ellipse.js"></script>
+				
+		<script>	
+dojo.require("dojox.gfx");
+dojo.require("dojox.gfx.move");
+dojo.require("dojox.gfx.utils");		
+		var f, a, t;
+		var ta=dojox.diagram;
+		//makeToolbar=function(node,figure){
+		//	var toolbar=new dojox.diagram.Toolbar({"figure":figure});
+		//	node.appendChild(toolbar.domNode);
+		//	return toolbar;
+		//}
+		function init(){
+			var ta=dojox.diagram;
+			f=new Figure();
+			dojo.connect(f, "_mu", function(){ dojo.byId("output").value=f.serialize(); });
+
+			t=ta.makeToolbar(dojo.byId("toolbar"), f);
+			//	test loading from a SVG file or other format files, such text format
+			dojo.xhrGet({
+				url:"diagram-9.svg",
+				preventCache:true,
+				load:function(data, ioArgs){
+					f.load(dojox.xml.DomParser.parse(data), dojo.byId("canvas"));
+					dojo.byId("output").value=f.serialize();
+				}
+			});
+		}			
+		dojo.addOnLoad(init);
+		</script>
+	</head>
+
+	<body class="tundra">
+		<h1>moveToBack bug report </h1>
+		<p>Help: Click the shape, hold the mouse, then press key 'F' or 'f' for moveToFront(), press 'B' or'b' for moveToBack().<br />
+		<div id="container">
+			<div id="toolbar"></div>
+			<div id="canvas"></div>
+		</div>
+		<h2>Serialized output</h2>
+		<textarea id="output" style="width:100%;height:180px;overflow:auto;font-size:0.8em;"></textarea>
+	</body>
+</html>

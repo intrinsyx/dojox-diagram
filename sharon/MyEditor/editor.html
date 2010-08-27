@@ -1,0 +1,455 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" >
+<head>
+<title>DojoX GFX Editor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+	@import "http://o.aolcdn.com/dojo/1.0.0/dojo/resources/dojo.css";
+	@import "http://o.aolcdn.com/dojo/1.0.0/dijit/tests/css/dijitTests.css";
+	@import "editor.css";
+	td.cell { padding: 1em 1em 0em 0em; }
+	td.note { font-size: 80%; }
+</style>
+
+<!-- The next line should include Microsoft's Silverligt.js, if you plan to use the silverlight backend
+<script type="text/javascript" src="Silverlight.js"></script> 
+<script type="text/javascript" src="../dojo-trunk/dojo/dojo.js"</script>-->
+<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojo/dojo.xd.js"></script>
+<script type="text/javascript" src="http://o.aolcdn.com/dojo/1.0.0/dojox/gfx.js"></script>
+<script type="text/javascript" src="./javascripts/mymove.js"></script>
+<script type="text/javascript">
+dojo.require("dojox.gfx");
+dojo.require("dojox.gfx.move");
+dojo.require("dojox.gfx.utils");
+
+
+container = null;
+surface = null;
+container_pos = null;
+mover = null;
+mymover = null;
+mode = null; // mode = draw, select, connect, pan, or more....
+
+var c1,c2;
+var connector1;
+var c_x1,c_y1,c_x2,c_y2;
+init = function(){
+	// initialize graphics
+	container = dojo.byId("drawing");
+	container_pos = dojo.coords(container, true);
+	surface = dojox.gfx.createSurface(container, 1000, 1000);
+	
+	//draw two circles and one line, which moves with the circles
+	c1 = surface.createShape({type: "rect", x: 100, y: 100, width:100,height:100})
+					.setFill("#def")
+					.setStroke({})
+					;
+	c1.getEventSource().setAttribute('shapeid', "c_1");
+	c2 = surface.createShape({type: "rect", x: 400, y: 100, width:100,height:100})
+					.setFill("#def")
+					.setStroke({})
+					;
+	c2.getEventSource().setAttribute('shapeid', "c_2");
+	//new dojox.gfx.Moveable(c1);
+	//new dojox.gfx.Moveable(c2);
+	new myMoveable(c1);
+	new myMoveable(c2);
+	
+	connector1 = surface.createLine({x1:150, y1:150, x2:450, y2:150})
+		.setStroke({color: "blue"})
+		;
+	c_x1=150;
+	c_y1=150;
+	c_x2=450;
+	c_y2=150;
+	connector1.getEventSource().setAttribute('shapeid', "con_1");
+	//new dojox.gfx.Moveable(connector1);
+	
+	// handle mouse click events
+    /*dojo.connect(dojo.byId("pointer"),"onclick",select);
+	dojo.connect(dojo.byId("line"), "onclick", drawLine);
+	dojo.connect(dojo.byId("rectangle"), "onclick", drawRect);
+	dojo.connect(dojo.byId("circle"), "onclick", drawCircle);
+	dojo.connect(dojo.byId("delete"), "onclick", deleteNode);	
+	dojo.connect(dojo.byId("front"), "onclick", movetoFront);
+	dojo.connect(dojo.byId("back"), "onclick", movetoBack);*/
+		
+	// handle moves
+	dojo.subscribe("/gfx/mymove/start", function(m){ mymover = m; });
+	dojo.subscribe("/gfx/mymove/stop", function(){ mymover = null; });
+
+	// handle moves
+	dojo.subscribe("/gfx/move/start", function(m){ mover = m; });
+	dojo.subscribe("/gfx/move/stop", function(){ mover = null; });
+	
+	// handle shape operations
+	dojo.connect(document, "onkeydown", onKeyDown);
+	dojo.connect(container, "onclick", onClick);
+	
+	// cancel text selection and text dragging
+	dojo.connect(container, "ondragstart",   dojo, "stopEvent");
+	dojo.connect(container, "onselectstart", dojo, "stopEvent");
+};
+
+var x, y;
+function show_coords(event)
+  {
+  x=event.clientX
+  y=event.clientY
+  alert("X coords: " + x + ", Y coords: " + y)
+  }
+
+var targ;
+var tname;
+function whichElement(e)
+{
+	if (!e) var e = window.event
+	if (e.target) targ = e.target
+	else if (e.srcElement) targ = e.srcElement
+	if (targ.nodeType == 3) // defeat Safari bug
+	   targ = targ.parentNode
+	tname=targ.tagName
+	//alert("You clicked on a " +targ+" ," + tname + " element.")
+};
+
+var drawType=null;
+var xStart, yStart, xEnd, yEnd;
+var shapes=[];
+var connectors = [];
+var shapeCount=0;
+var connectorCount=0;
+var line_1;
+var rect1;
+var roundedR=0;
+var circle1;
+var r1,r2,r3,r4;
+var group;
+
+var currentObject = null;
+
+drawLine = function(){
+	
+	_down_connect = dojo.connect(container,"onmousedown", onMouseDown);
+	_move_connect = dojo.connect(container,"onmousemove", onMouseMove);
+	_up_connect = dojo.connect(container,"onmouseup", onMouseUp);
+	//debugger;
+	drawType = "line";	
+	mode = "connect";
+}
+
+drawRect = function(r) {
+	//debugger;
+	_down_connect = dojo.connect(container,"onmousedown", onMouseDown);
+	_move_connect = dojo.connect(container,"onmousemove", onMouseMove);
+	_up_connect = dojo.connect(container,"onmouseup", onMouseUp);
+	drawType = "rect";
+	if(r) roundedR = r;
+	else roundedR = 0;
+	mode = "draw";
+}
+
+drawCircle = function() {
+	_down_connect = dojo.connect(container,"onmousedown", onMouseDown);
+	_move_connect = dojo.connect(container,"onmousemove", onMouseMove);
+	_up_connect = dojo.connect(container,"onmouseup", onMouseUp);
+	drawType = "circle";
+	mode = "draw";
+}
+
+duplicateNode = function() {
+    if(currentObject){
+    	//console.log("current object:",currentObject);    	
+    	var newShape = surface.createShape(currentObject.getShape());
+    	dojo.forEach(["Transform", "Stroke", "Fill", "Font"],
+	        function(prop){
+	            if(shape["get" + prop]){
+	                newShape["set" + prop](currentObject["get" + prop]());
+	            }
+	        }
+    );
+    	//newShape.applyLeftTransform({dx: 5, dy: 5});
+		shapeCount++;
+	}
+    //return newShape;
+    
+	mode = null;
+}
+
+deleteNode = function() {
+    if(currentObject){
+    	//console.log("current object:",currentObject);
+		currentObject.parent.remove(currentObject);
+		shapeCount--;
+	}
+	mode = null;
+}
+
+movetoFront = function(){
+	//debugger;
+	if(currentObject){
+		currentObject.moveToFront();
+	}
+	mode = null;
+}
+
+movetoBack = function() {
+	//debugger;
+	if(currentObject){
+		currentObject.moveToBack();
+	}
+	mode = null;
+}
+
+rotateCW = function() {
+	if(currentObject){
+		/*console.log("current object:",currentObject.getEventSource());
+		var currentO = new dojox.gfx.Shape(currentObject);
+		console.log("current O:",currentObject.getEventSource());
+		var xc=currentO.getBoundingBox().x;
+		var yc=currentO.getBoundingBox().y;
+		var w=currentO.getBoundingBox().width;
+		var h=currentO.getBoundingBox().height;
+		currentO.applyLeftTransform(dojox.gfx.matrix.rotategAt(1, xc+w/2, yc+h/2));*/
+		alert("Coming soon! Please hold the mouse and type 'W' or 'w' for it now");
+	}
+	mode = null;
+}
+
+rotateCCW = function() {
+	if(currentObject){
+		alert("Coming soon! Please hold the mouse and type 'Q' or 'q' for it now");
+	}
+	mode = null;
+}
+
+onMouseDown = function(event) {
+
+	xStart = event.pageX - container_pos.x;
+	yStart = event.pageY - container_pos.y;
+	whichElement(event);
+	//debugger;
+	if (drawType == "line" ){
+	//debugger;	
+		line_1 = surface.createLine({x1: xStart, y1: yStart, x2: xStart, y2: yStart})
+			.setStroke({color: "red", width:2})
+			;
+		}
+	if (drawType == "rect" ) {
+		rect1 = surface.createShape({type: "rect", x: xStart, y: yStart, width:1, height:1, r: roundedR})
+					.setFill("#def")
+					.setStroke({})
+					;
+	}
+	
+	if (drawType == "circle" ) {
+		circle1 = surface.createShape({type: "ellipse", cx: xStart, cy: yStart, rx:1, ry:1})
+					.setFill("#def")
+					.setStroke({})
+					;
+	}
+
+}
+
+onMouseMove = function(event) {
+	
+}
+
+onMouseUp = function(event){
+	xEnd = event.pageX - container_pos.x;
+	yEnd = event.pageY - container_pos.y; 
+	var w = xEnd-xStart;
+	var h = yEnd-yStart;
+		
+	if(drawType == "line" &&line_1 ) {
+		line_1.setShape({x1: xStart, y1: yStart, x2: xEnd, y2: yEnd})
+				.setStroke({color: "red", width:2})
+				;	
+		var id = "connect_" + (connectorCount);
+		line_1.getEventSource().setAttribute('shapeid', id);
+		connectors[connectorCount]=line_1;
+		connectorCount++;
+		new myMoveable(line_1);
+	}
+	
+	if(drawType == "rect"&&rect1) {
+		//group = surface.createGroup();
+		rect1.setShape({type: "rect", x: xStart, y: yStart, width:w, height:h, r: roundedR})
+					.setFill("#def")
+					.setStroke({})
+					;
+		//console.log("bounding box:",rect1.getBoundingBox().x, rect1.getBoundingBox().y);
+		//new dojox.gfx.Moveable(group);
+		new myMoveable(rect1);
+		var id = "rect_" + (shapeCount);
+		rect1.getEventSource().setAttribute('shapeid', id);
+		shapes[shapeCount]=rect1;
+		shapeCount++;
+    }
+    
+    if(drawType == "circle"&&circle1) {
+		circle1.setShape({type: "ellipse", cx: xStart, cy: yStart, rx:Math.sqrt(w*w+h*h)/2, ry:Math.sqrt(w*w+h*h)/2})
+					.setFill("#def")
+					.setStroke({})
+					;
+		new myMoveable(circle1);
+		var id = "circle_" + (shapeCount);
+		circle1.getEventSource().setAttribute('shapeid', id);
+		shapes[shapeCount]= circle1;
+		shapeCount++;  
+    }
+    //console.log(shapes);
+	dojo.disconnect(_down_connect);
+  	dojo.disconnect(_move_connect);
+  	dojo.disconnect(_up_connect);
+}
+
+// event handling
+
+onKeyDown = function(e){
+	if(mymover){
+	//debugger;
+		switch(e.keyCode){
+				case "f".charCodeAt(0): case "F".charCodeAt(0):
+					mymover.shape.moveToFront();
+					break;
+				case "b".charCodeAt(0): case "B".charCodeAt(0):
+					mymover.shape.moveToBack();
+					break;
+				case "q".charCodeAt(0): case "Q".charCodeAt(0):
+					mymover.shape.applyLeftTransform(dojox.gfx.matrix.rotategAt(-1, mymover.lastX - container_pos.x, mymover.lastY - container_pos.y));
+					break;
+				case "w".charCodeAt(0): case "W".charCodeAt(0):
+					mymover.shape.applyLeftTransform(dojox.gfx.matrix.rotategAt(1, mymover.lastX - container_pos.x, mymover.lastY - container_pos.y));
+					break;	
+				case "s".charCodeAt(0): case "S".charCodeAt(0):
+				    //console.log("mover.lastX and mover.lastY is: %d, %d", mover.lastX, mover.lastY);
+					mymover.shape.applyLeftTransform(dojox.gfx.matrix.scaleAt(0.5,0.5, mymover.lastX - container_pos.x, mymover.lastY - container_pos.y));
+					break;
+				case "l".charCodeAt(0): case "L".charCodeAt(0):
+					mymover.shape.applyTransform(dojox.gfx.matrix.scaleAt(2,2, mymover.lastX - container_pos.x, mymover.lastY - container_pos.y));
+					break;
+				case "d".charCodeAt(0): case "D".charCodeAt(0):
+					mymover.shape.parent.remove(mymover.shape);
+					//mymover.shape.rawNode = null;
+					mymover.destroy();
+					shapeCount--;
+					break;
+			}
+	}
+	dojo.stopEvent(e);
+};
+
+onClick = function(e){
+	//debugger;
+	whichElement(e);
+	var x =e.pageX - container_pos.x;
+	var y = e.pageY - container_pos.y;
+	
+	//console.log("container_pos.X,Y:",container_pos.x+","+container_pos.y);
+	//console.log("pageX,y:",e.pageX+","+e.pageY);
+	if(targ.getAttribute("shapeid")=="c_1")
+	{
+		var x = c1.getTransformedBoundingBox()[0].x;
+		var y = c1.getTransformedBoundingBox()[0].y;
+		var w = c1.getBoundingBox().width;
+		var h = c1.getBoundingBox().height;
+		c_x1 = x+w/2;
+		c_y1 = y+h/2;
+	}
+	else if(targ.getAttribute("shapeid")=="c_2")
+	{
+		var x = c2.getTransformedBoundingBox()[0].x;
+		var y = c2.getTransformedBoundingBox()[0].y;
+		var w = c2.getBoundingBox().width;
+		var h = c2.getBoundingBox().height;
+		c_x2 = x+w/2;
+		c_y2 = y+h/2;
+	
+	}
+	connector1.setShape({x1:c_x1, y1:c_y1, x2:c_x2, y2:c_y2})
+			.setStroke({color: "blue"})
+			;
+}
+dojo.addOnLoad(init);
+
+</script>
+</head>
+
+
+<body>
+	<h2>DojoX GFX Editor  </h2>
+	<p>Help: Use FireFox to test this editor. Drag two rectangles on the surface to make the line follow the shape. Drag corner rectangels
+	    to change the size. </p>
+	<p>Click the shape icon, then draw the shape using the mouse(click the left button, then drag the mouse). 
+         You need to click the icon everytime before drawing a new shape. </p>
+ <!--
+	Move the shape around, or apply operations to selected items(hold the mouse left button):<br />
+	F &mdash; bring to front, B &mdash; bring to back, Q &mdash; rotate CCW, W &mdash; rotate CW, D &mdash; delete, 
+S &mdash; make it smaller, L &mdash; make it larger.<br />
+	(all operations work on currently dragged item).</p>-->
+
+
+</p>
+
+<div id = "toolbar" style="width: 1000px; height: 30px;" >
+<!--<div dojoinsertionindex="0" id="" class="toolbarContainer" dojoattachpoint="containerNode">
+		<div dojoinsertionindex="0" id="" class="toolbar" dojoattachpoint="containerNode" 
+				unselectable="on" dojoonmouseover="_onmouseover" dojoonmouseout="_onmouseout" 
+				dojoonclick="_onclick" dojoonmousedown="_onmousedown" dojoonmouseup="_onmouseup">
+					<span dojoinsertionindex="0" id="" unselectable="on" class="toolbarButtonGroup" dojoattachpoint="containerNode">-->
+		<div class="toolbarContainer">  
+				<div class="toolbar" >
+							<!--<span class="toolbarButtonGroup" >
+						<!--<span title="pointer" class="toolbarItem toolbarButton">
+							<img src="images/pointer.png"></a>
+						</span>-->
+						<span title="rectangle"	id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=drawRect() >
+							<a> <img src="images/rectangle.png"></a>
+						</span>
+						<span title="rounded rectangle"	id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=drawRect(10) >
+							<a><img src="images/roundrect.png"></a>
+						</span>
+						<span title="circle/ellipse"  id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=drawCircle()>
+							<a><img src="images/circle.png"></a>
+						</span>
+						<span title="connector" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=drawLine()>
+							<a><img src="images/line.png"></a>
+						</span>
+						<span title="text" id = "" unselectable="on"  class="toolbarItem toolbarButton">
+							<a><img src="images/text.png"></a>
+						</span>
+						<span title="delete" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=deleteNode()>
+							<a><img src="images/delete.gif"></a>
+						</span>
+						<span title="duplicate selection" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=duplicateNode()>
+							<a><img src="images/duplicate.png"></a>
+						</span>
+						<!--<span title="insert image" unselectable="on" class="toolbarItem toolbarButton" onclick ="this.className='toolbarItem.down'">
+							<a><img src="images/insertimage.gif"></a>
+						</span>
+						<span title="group" unselectable="on" class="toolbarItem toolbarButton" onclick ="this.className='toolbarItem.down'">
+							<a><img src="images/group.png"></a>
+						</span>
+						<span title="ungroup" unselectable="on" class="toolbarItem toolbarButton" onclick ="this.className='toolbarItem.down'">
+							<a><img src="images/ungroup.png"></a>
+						</span>-->
+						<span title="bring to front" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=movetoFront()>
+							<a><img src="images/front.png"></a>
+						</span>
+						<span title="bring to back" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=movetoBack()>
+							<a><img src="images/back.png"></a>
+						</span>
+						
+						<!--<span title="rotate clockwise" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=rotateCW()>
+							<a><img src="images/rotate-cw.png"></a>
+						</span>
+						<span title="rotate counter clockwise" id = "" unselectable="on" class="toolbarItem toolbarButton" onclick=rotateCCW()>
+							<a><img src="images/rotate-ccw.png"></a>
+						</span>-->
+					<!--</span>-->
+		</div>
+		</div>
+	</div>
+	
+	<div id="drawing" style="width: 100%; height: 100%;"></div> <!-- onmousedown="show_coords(event)"></div> -->  
+</body>
+</html>

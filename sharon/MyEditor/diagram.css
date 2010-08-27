@@ -1,0 +1,59 @@
+.dojoxDiagramIcon{
+	background-repeat:no-repeat;
+	height:16px;
+	min-width:16px;
+	text-align:center;
+	width:16px;
+}
+.dojoxDiagramIconSelect { background-image:url(images/pointer.png); }
+.ShowCallouts{ background-position:0px 0px; }
+
+.dojoxDiagramIconPan{ background-image:url(images/pan.png); }
+
+.dojoxDiagramIconRectangle{ background-image:url(images/rectangle.png); }
+.dojoxDiagramIconRoundRect{ background-image:url(images/roundrect.png); }
+.dojoxDiagramIconEllipse{ background-image:url(images/ellipse.gif); }
+.dojoxDiagramIconCircle{ background-image:url(images/circle-3.png); }
+.dojoxDiagramIconTriangle{ background-image:url(images/triangle.gif); }
+.dojoxDiagramIconHexagon{ background-image:url(images/hexagon.gif); }
+.dojoxDiagramIconPath{ background-image:url(images/icons.gif); background-position:0px -48px; }
+.dojoxDiagramIconUnderline{ background-image:url(images/icons.gif);background-position:0px -80px; }
+.dojoxDiagramIconConnector{ background-image:url(images/line.png); }
+
+
+.dojoxDiagramIconText{ background-image:url(images/text.gif); }
+
+.dojoxDiagramIconSeparator{ background-repeat:no-repeat;
+	height:16px;
+	min-width:4px;
+	text-align:center;
+	width:4px;background-image:url(images/-.gif); }
+
+.dojoxDiagramIconImageRect{ background-image:url(images/insertimage.gif); }
+
+.dojoxDiagramIconRedo{ background-image:url(images/redo.png); }
+.dojoxDiagramIconUndo{ background-image:url(images/undo.png); }
+.dojoxDiagramIconDuplicate{ background-image:url(images/duplicate.png); }
+.dojoxDiagramIconBack{ background-image:url(images/back.png); }
+.dojoxDiagramIconFront{ background-image:url(images/front.png); }
+.dojoxDiagramIconGroup{ background-image:url(images/group.png); }
+.dojoxDiagramIconUngroup{ background-image:url(images/ungroup.png); }
+
+.dojoxDiagramIconDelete{ background-image:url(images/delete.png); }
+.dojoxDiagramIconSave{ background-image:url(images/save.png); }
+.dojoxDiagramIconOpen{ background-image:url(images/Open_Folder-16.png); }
+
+.dojoxDiagramIconLineColor{ background-image:url(images/linecolor.gif); }
+.dojoxDiagramIconLineSize{ background-image:url(images/strokeWeight.png); }
+.dojoxDiagramIconFillColor{ background-image:url(images/backcolor.gif); }
+
+.dojoxDiagramIconRotateCCW{ background-image:url(images/rotate-ccw.gif); }
+.dojoxDiagramIconRotateCW{ background-image:url(images/rotate-cw.gif); }
+
+.dojoxDiagramIconFontColor{ background-image:url(images/fontcolor.gif); }
+.dojoxDiagramIconFontSize{ background-image:url(images/fontsize.png); }
+.dojoxDiagramIconFontFamily{ background-image:url(images/text.png); }
+.dojoxDiagramIconItalic{ background-image:url(images/italic.gif); }
+.dojoxDiagramIconBold{ background-image:url(images/bold.gif); }
+
+
